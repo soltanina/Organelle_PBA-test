@@ -1,0 +1,178 @@
+#!usr/bin/perl
+
+=pod
+
+=head1 NAME
+
+     OrganelleRef_PBA
+     
+
+=head1 DESCRIPTION
+
+    This is a script to map pacbio reads with the organelle reference
+
+=head1 SYPNOSIS    
+     
+ OrganelleRef_PBA [-h]  -i <input_pacbio> -r <fasta_reference> -o <output_dir> 
+                  [-t <input_type>] [-m <minimap2_arguments>] 
+                  [-f <flye_options>]      
+
+=head1 AUTHOR
+
+    Azam Soltani
+
+
+=head1 DATE
+
+    07.03.2021
+
+=item -i
+
+B<input_pacbio>           input PacBio subreads (mandatory)
+
+=item -t
+
+B<input_type>             input type (fasta or fastq; default=fastq)
+
+=item -r
+
+B<fasta_reference>        organelle reference genome, fasta format (mandatory)
+
+=item -o
+
+B<output_dir>             output directory (mandatory)
+
+=item -m
+
+B<minimap2,ngmlr>         pass minimap2 arguments
+
+=item -f
+
+B<fly,canu>               passing flye argument
+
+=item -V
+
+B<be_verbose>             be verbose and print the parsing status.
+
+=item -v
+
+B<version>                print version
+
+=item -h
+
+B<help>                   print the help
+ 
+=cut 
+
+=head1 DESCRIPTION
+
+ This program maps pacbio whole dataset to a feference
+ It uses minimap2 and ngmlr for mapping and 
+ canu, flye and miniasm for assembly
+ 
+ =head1 METHODS
+ 
+ OrganelleRef_PBA
+
+## Call the modules 
+use strict;
+use warnings;
+use autodie;
+
+use Getopt::Std;
+use File::Path qw(make_path remove_tree);
+use IPC::Cmd qw[can_run run];
+
+use Bio::SeqIO;
+
+## Get the input file
+our ($opt_i, $opt_t, $opt_o, $opt_r, $opt_m, $opt_f, $opt_V, 
+     $opt_v, $opt_h);
+     
+getopts("i:t:o:r:m:f:Vvh");   
+if (!$opt_i && !$opt_t && !$opt_o && !$opt_r && !$opt_m  && !opt_f &&  !$opt_V && !$opt_v && !$opt_h) {
+    print "There are n\'t any tags. Print help\n\n";
+    help();
+}
+if ($opt_h) {
+    help();
+}
+elsif ($opt_v) {
+    print STDERR "\nOrganelleRef_PBA version:$version\n";
+    print STDERR "Developed at the Bombarely Laboratory (2015-10-01)\n\n";
+    exit(1);
+}  
+
+## Get the arguments and check them
+my $pbin = $opt_i || 
+    die("\nINPUT ARG. ERROR: -i <pacbio_input> argument was not supplied.\n\n");
+
+print STDERR "\tInput PacBio reads file: $pbin\n";
+
+my $intype = 'fastq';
+my %perm_intypes = (
+    'fastq' => 1,
+    'fasta' => 1
+    );
+if ($opt_t) {
+
+    unless (exists $perm_intypes{$opt_t}) {
+    
+	die("\nERROR: -t <input_type> permited values are fasta or fasta.\n");
+    }
+    else {
+    
+	$intype = $opt_t;
+    }
+}
+print STDERR "\tInput type: $intype\n";
+
+unless (-s $pbin) {
+
+    die("\nERROR: Input PacBio reads does not exist.\n\n");
+}
+
+my $outdir = $opt_o ||
+    die("\nINPUT ARG. ERROR: -o <output_dir> argument was not supplied.\n\n");
+
+print STDERR "\tOutput directory: $outdir\n";
+
+unless (-d $outdir) {
+
+    die("\nERROR: Out directory does not exist. Please create it.\n\n");
+}
+    
+my $orgref = $opt_r ||
+    die("\nINPUT ARG. ERROR: -r <fasta_ref> argument was not supplied.\n\n"); 
+
+print STDERR "\tOrganelle reference fasta file: $orgref\n";
+
+my $refsize;
+unless (-s $orgref) {
+
+    die("ERROR: Organelle reference fasta files does not exist.\n\n");
+}
+else {
+
+    ## It will get the size and use for est_size
+    ## Also, produce a warning if more than one sequence is in the ref file
+
+    my $refc = 0;
+
+    my $ref_seqio = Bio::SeqIO->new( -file => $orgref, -type => 'fasta' );
+    while( my $refseq = $ref_seqio->next_seq() ) {
+    
+	my $refid = $refseq->id();
+	my $ref_l = $refseq->length();
+	$refsize = $ref_l;
+	$refc++;
+    }
+    
+    if ($refc > 1) {
+    
+	warn("\nWARNING: Reference file has more than one sequence\n");
+    }
+
+    print STDERR "\t\tOrganelle reference size: $refsize bp\n";
+    $gstats{'00_reference_size'} = $refsize;
+}        
