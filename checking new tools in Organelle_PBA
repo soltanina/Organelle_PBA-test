@@ -4,12 +4,12 @@
 
 =head1 NAME
 
-     OrganelleRef_PBA
+ OrganelleRef_PBA
      
 
 =head1 DESCRIPTION
 
-    This is a script to map pacbio reads with the organelle reference
+ This is a script to map pacbio reads with the organelle reference
 
 =head1 SYPNOSIS    
      
@@ -19,12 +19,12 @@
 
 =head1 AUTHOR
 
-    Azam Soltani
+ Azam Soltani
 
 
 =head1 DATE
 
-    07.03.2021
+ 07.03.2021
 
 =item -i
 
