@@ -69,7 +69,7 @@ B<help>                   print the help
 
 =head1 DESCRIPTION
 
- This program maps pacbio whole dataset to a feference
+ This program maps pacbio whole dataset to a reference
  It uses minimap2 and ngmlr for mapping and 
  canu, flye and miniasm for assembly
  
