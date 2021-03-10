@@ -70,7 +70,7 @@ B<help>                   print the help
  It uses minimap2 and ngmlr for mapping and 
  canu, flye and miniasm for assembly
  
- =head1 METHODS
+=head1 METHODS
  
  OrganelleRef_PBA
 
