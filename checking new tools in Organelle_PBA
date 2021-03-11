@@ -104,7 +104,7 @@ if ($opt_h) {
 }
 elsif ($opt_v) {
     print STDERR "\nOrganelleRef_PBA version:$version\n";
-    print STDERR "Developed at the Bombarely Laboratory (2015-10-01)\n\n";
+    print STDERR "Developed at the Bombarely Laboratory\n\n";
     exit(1);
 }  
 
